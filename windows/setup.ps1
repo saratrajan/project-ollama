@@ -106,6 +106,7 @@ if ($SkipWebUI) {
             "-v", "${WEBUI_DATA_DIR}:/app/backend/data",
             "--name", $WEBUI_CONTAINER,
             "--restart", "always",
+            "--env", "OLLAMA_BASE_URL=http://host.docker.internal:11434",
             "--env", "SCARF_NO_ANALYTICS=true",
             "--env", "DO_NOT_TRACK=1",
             "--env", "ANONYMIZED_TELEMETRY=false",

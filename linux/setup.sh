@@ -106,6 +106,23 @@ else
     fi
     ok "Docker is running"
 
+    # On WSL, Ollama runs as a systemd service bound to 127.0.0.1 by default.
+    # Docker containers can't reach that — patch the service to bind to 0.0.0.0.
+    if grep -qi microsoft /proc/version 2>/dev/null; then
+        step "WSL detected — ensuring Ollama binds to 0.0.0.0 for Docker access..."
+        OLLAMA_OVERRIDE_DIR="/etc/systemd/system/ollama.service.d"
+        OLLAMA_OVERRIDE_FILE="$OLLAMA_OVERRIDE_DIR/override.conf"
+        if [[ ! -f "$OLLAMA_OVERRIDE_FILE" ]] || ! grep -q "OLLAMA_HOST" "$OLLAMA_OVERRIDE_FILE" 2>/dev/null; then
+            sudo mkdir -p "$OLLAMA_OVERRIDE_DIR"
+            printf '[Service]\nEnvironment="OLLAMA_HOST=0.0.0.0:11434"\n' | sudo tee "$OLLAMA_OVERRIDE_FILE" >/dev/null
+            sudo systemctl daemon-reload
+            sudo systemctl restart ollama 2>/dev/null || true
+            ok "Ollama systemd service patched to bind 0.0.0.0:11434"
+        else
+            skip "Ollama systemd override already in place"
+        fi
+    fi
+
     step "Setting up Open WebUI container..."
 
     # Ensure data directory exists with correct permissions
@@ -126,6 +143,7 @@ else
             -v "${WEBUI_DATA_DIR}:/app/backend/data" \
             --name "$WEBUI_CONTAINER" \
             --restart always \
+            --env OLLAMA_BASE_URL=http://host.docker.internal:11434 \
             --env SCARF_NO_ANALYTICS=true \
             --env DO_NOT_TRACK=1 \
             --env ANONYMIZED_TELEMETRY=false \
