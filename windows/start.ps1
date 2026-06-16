@@ -1,6 +1,6 @@
 # =============================================================================
-# start.ps1 — Boot your local AI environment
-# Safe to run multiple times — skips anything already running.
+# start.ps1 - Boot your local AI environment
+# Safe to run multiple times - skips anything already running.
 #
 # Usage:
 #   .\start.ps1 [-NoBrowser]
@@ -22,10 +22,10 @@ function Write-Warn($msg) { Write-Host "    [!!] $msg" -ForegroundColor Yellow }
 function Write-Fail($msg) { Write-Host "    [XX] $msg" -ForegroundColor Red }
 
 Write-Host ""
-Write-Host "  ╔══════════════════════════════════╗" -ForegroundColor Magenta
-Write-Host "  ║     project-ollama  start.ps1    ║" -ForegroundColor Magenta
-Write-Host "  ║   Model: $DEFAULT_MODEL" -ForegroundColor Magenta
-Write-Host "  ╚══════════════════════════════════╝" -ForegroundColor Magenta
+Write-Host "  +----------------------------------+" -ForegroundColor Magenta
+Write-Host "  |   project-ollama  start.ps1      |" -ForegroundColor Magenta
+Write-Host "  |   Model: $DEFAULT_MODEL" -ForegroundColor Magenta
+Write-Host "  +----------------------------------+" -ForegroundColor Magenta
 
 # --- 1. Ollama service ---
 Write-Step "Checking Ollama service..."
@@ -43,10 +43,9 @@ try {
 if ($ollamaUp) {
     Write-OK "Ollama is running at $OLLAMA_HOST"
 } else {
-    Write-Warn "Ollama not responding — attempting to start..."
+    Write-Warn "Ollama not responding - attempting to start..."
     Start-Process "ollama" -ArgumentList "serve" -WindowStyle Hidden
 
-    # Wait up to 10s
     for ($i = 1; $i -le 5; $i++) {
         Start-Sleep -Seconds 2
         try {
@@ -70,10 +69,10 @@ $models = ollama list 2>&1
 if ($models -match [regex]::Escape($base)) {
     Write-OK "$DEFAULT_MODEL is available"
 } else {
-    Write-Warn "$DEFAULT_MODEL not found locally — pulling now..."
+    Write-Warn "$DEFAULT_MODEL not found locally - pulling now..."
     ollama pull $DEFAULT_MODEL
     if ($LASTEXITCODE -ne 0) {
-        Write-Warn "Pull may have failed — continuing (model may still work if partially cached)"
+        Write-Warn "Pull may have failed - continuing (model may still work if partially cached)"
     }
 }
 
@@ -97,7 +96,7 @@ if ($running) {
     docker start $WEBUI_CONTAINER | Out-Null
     Write-OK "Open WebUI container restarted"
 } else {
-    Write-Warn "Container not found — running setup first..."
+    Write-Warn "Container not found - running setup first..."
     & "$PSScriptRoot\setup.ps1"
 }
 
@@ -120,7 +119,7 @@ while ($attempt -lt $maxAttempts -and -not $ready) {
 if ($ready) {
     Write-OK "Open WebUI is live at http://localhost:$WEBUI_PORT"
 } else {
-    Write-Warn "WebUI taking longer than expected — try http://localhost:$WEBUI_PORT in a moment"
+    Write-Warn "WebUI taking longer than expected - try http://localhost:$WEBUI_PORT in a moment"
 }
 
 # --- 6. Open browser ---

@@ -1,6 +1,6 @@
 # =============================================================================
-# setup.ps1 — Pull models and launch Open WebUI
-# Safe to run multiple times — skips steps that are already complete.
+# setup.ps1 - Pull models and launch Open WebUI
+# Safe to run multiple times - skips steps that are already complete.
 #
 # Usage:
 #   .\setup.ps1 [-SkipWebUI] [-Yes]
@@ -31,16 +31,15 @@ function Pull-IfMissing($model) {
     } else {
         ollama pull $model
         if ($LASTEXITCODE -eq 0) { Write-OK "$model ready" }
-        else { Write-Warn "Could not pull $model — skipping (run manually: ollama pull $model)" }
+        else { Write-Warn "Could not pull $model - skipping (run manually: ollama pull $model)" }
     }
 }
 
 # --- 1. Ollama check / install ---
 Write-Step "Checking Ollama..."
 if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
-    Write-Warn "Ollama not found — installing via winget..."
+    Write-Warn "Ollama not found - installing via winget..."
     winget install Ollama.Ollama --silent --accept-source-agreements --accept-package-agreements
-    # Refresh PATH for current session
     $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "Machine") + ";" +
                 [System.Environment]::GetEnvironmentVariable("PATH", "User")
     if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
@@ -88,7 +87,7 @@ if ($SkipWebUI) {
         Write-Skip "Container '$WEBUI_CONTAINER' already running"
     } elseif ($stopped) {
         docker start $WEBUI_CONTAINER | Out-Null
-        Write-OK "Container '$WEBUI_CONTAINER' was stopped — started it"
+        Write-OK "Container '$WEBUI_CONTAINER' was stopped - started it"
     } else {
         $dockerArgs = @(
             "run", "-d",
@@ -101,7 +100,7 @@ if ($SkipWebUI) {
         )
         & docker @dockerArgs
         if ($LASTEXITCODE -eq 0) { Write-OK "Open WebUI container created" }
-        else { Write-Fail "Failed to create container — check Docker output above"; exit 1 }
+        else { Write-Fail "Failed to create container - check Docker output above"; exit 1 }
     }
 }
 
