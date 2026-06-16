@@ -45,7 +45,8 @@ if curl -sf "$OLLAMA_HOST" &>/dev/null; then
     ok "Ollama is running at $OLLAMA_HOST"
 else
     warn "Ollama not responding — attempting to start..."
-    OLLAMA_HOST="127.0.0.1:11434" OLLAMA_ORIGINS="$OLLAMA_ORIGINS" ollama serve &>/dev/null &
+    # Bind to 0.0.0.0 so Docker containers can reach Ollama via host.docker.internal (required for WSL)
+    OLLAMA_HOST="0.0.0.0:11434" OLLAMA_ORIGINS="$OLLAMA_ORIGINS" ollama serve &>/dev/null &
     OLLAMA_PID=$!
     # Wait up to 10s for the server to respond
     for i in {1..5}; do
