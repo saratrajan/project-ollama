@@ -90,14 +90,16 @@ if ($SkipWebUI) {
         docker start $WEBUI_CONTAINER | Out-Null
         Write-OK "Container '$WEBUI_CONTAINER' was stopped — started it"
     } else {
-        docker run -d `
-            -p "${WEBUI_PORT}:8080" `
-            --add-host=host.docker.internal:host-gateway `
-            -v open-webui:/app/backend/data `
-            --name $WEBUI_CONTAINER `
-            --restart always `
-            ghcr.io/open-webui/open-webui:main
-
+        $dockerArgs = @(
+            "run", "-d",
+            "-p", "${WEBUI_PORT}:8080",
+            "--add-host=host.docker.internal:host-gateway",
+            "-v", "open-webui:/app/backend/data",
+            "--name", $WEBUI_CONTAINER,
+            "--restart", "always",
+            "ghcr.io/open-webui/open-webui:main"
+        )
+        & docker @dockerArgs
         if ($LASTEXITCODE -eq 0) { Write-OK "Open WebUI container created" }
         else { Write-Fail "Failed to create container — check Docker output above"; exit 1 }
     }
