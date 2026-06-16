@@ -59,6 +59,23 @@ Edit `windows/config.ps1` or `linux/config.sh` before running setup:
 |---|---|
 | `setup` | `--skip-webui` / `-SkipWebUI` — Ollama + models only, skip Docker |
 | `start` | `--no-browser` / `-NoBrowser` — don't open browser |
+| `teardown` | `--yes` / `-Yes` — skip confirmation prompt |
+
+## Stopping & Teardown
+
+**Stop** (reversible — container and models kept):
+```powershell
+.\windows\stop.ps1       # Windows
+./linux/stop.sh          # Linux / macOS
+```
+
+**Teardown** (destructive — removes container and WebUI data volume, models kept):
+```powershell
+.\windows\teardown.ps1   # Windows
+./linux/teardown.sh      # Linux / macOS
+```
+
+Run `setup` again after a teardown to rebuild.
 
 ## Adding Models
 
