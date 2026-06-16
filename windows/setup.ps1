@@ -88,6 +88,7 @@ if ($SkipWebUI) {
     } elseif ($stopped) {
         docker start $WEBUI_CONTAINER | Out-Null
         Write-OK "Container '$WEBUI_CONTAINER' was stopped - started it"
+        Write-Warn "Telemetry flags only apply to new containers. Run teardown + setup to rebuild with them."
     } else {
         $dockerArgs = @(
             "run", "-d",
@@ -96,10 +97,13 @@ if ($SkipWebUI) {
             "-v", "open-webui:/app/backend/data",
             "--name", $WEBUI_CONTAINER,
             "--restart", "always",
+            "--env", "SCARF_NO_ANALYTICS=true",
+            "--env", "DO_NOT_TRACK=1",
+            "--env", "ANONYMIZED_TELEMETRY=false",
             "ghcr.io/open-webui/open-webui:main"
         )
         & docker @dockerArgs
-        if ($LASTEXITCODE -eq 0) { Write-OK "Open WebUI container created" }
+        if ($LASTEXITCODE -eq 0) { Write-OK "Open WebUI container created (telemetry disabled)" }
         else { Write-Fail "Failed to create container - check Docker output above"; exit 1 }
     }
 }

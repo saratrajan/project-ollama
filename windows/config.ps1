@@ -17,5 +17,9 @@ $WEBUI_CONTAINER   = "open-webui" # Docker container name
 # Ollama API
 $OLLAMA_HOST       = "http://localhost:11434"
 
+# Security: restrict Ollama to local callers only (Continue + WebUI)
+# Change only if you deliberately expose Ollama to other machines
+$OLLAMA_ORIGINS    = "http://localhost,http://127.0.0.1,http://localhost:3000"
+
 # Open browser automatically on start?
 $AUTO_OPEN_BROWSER = $true

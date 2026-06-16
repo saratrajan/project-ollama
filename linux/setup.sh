@@ -112,6 +112,7 @@ else
     elif docker ps -a --format "{{.Names}}" | grep -q "^${WEBUI_CONTAINER}$"; then
         docker start "$WEBUI_CONTAINER" >/dev/null
         ok "Container '$WEBUI_CONTAINER' was stopped — started it"
+        warn "Telemetry flags only apply to new containers. Run teardown + setup to rebuild with them."
     else
         docker run -d \
             -p "${WEBUI_PORT}:8080" \
@@ -119,8 +120,11 @@ else
             -v open-webui:/app/backend/data \
             --name "$WEBUI_CONTAINER" \
             --restart always \
+            --env SCARF_NO_ANALYTICS=true \
+            --env DO_NOT_TRACK=1 \
+            --env ANONYMIZED_TELEMETRY=false \
             ghcr.io/open-webui/open-webui:main
-        ok "Open WebUI container created"
+        ok "Open WebUI container created (telemetry disabled)"
     fi
 fi
 

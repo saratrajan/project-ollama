@@ -44,6 +44,8 @@ if ($ollamaUp) {
     Write-OK "Ollama is running at $OLLAMA_HOST"
 } else {
     Write-Warn "Ollama not responding - attempting to start..."
+    $env:OLLAMA_HOST    = "127.0.0.1:11434"
+    $env:OLLAMA_ORIGINS = $OLLAMA_ORIGINS
     Start-Process "ollama" -ArgumentList "serve" -WindowStyle Hidden
 
     for ($i = 1; $i -le 5; $i++) {
