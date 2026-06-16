@@ -1,0 +1,14 @@
+name: commit-msg
+description: Write a conventional commit message for the current diff
+prompt: |
+  Write a git commit message for the following diff.
+
+  Rules:
+  - Use Conventional Commits format: <type>(<scope>): <short summary>
+  - Types: feat, fix, refactor, chore, docs, test, perf, style
+  - Keep the summary under 72 characters, lowercase, no trailing period
+  - Add a short body paragraph only if the WHY is non-obvious
+  - Do not mention file names or re-describe the diff line-by-line
+
+  Diff:
+  {{{ diff }}}

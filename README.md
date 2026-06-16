@@ -19,14 +19,24 @@ Bootstrap for a fully local, private AI environment — runs [Ollama](https://ol
 
 ```
 project-ollama/
-├── windows/          # PowerShell scripts for Windows
-│   ├── config.ps1   # Edit this to change models / ports
-│   ├── setup.ps1    # Run once after cloning
-│   └── start.ps1    # Run every time to boot the environment
-├── linux/            # Bash scripts for Linux / macOS
-│   ├── config.sh    # Edit this to change models / ports
-│   ├── setup.sh     # Run once after cloning
-│   └── start.sh     # Run every time to boot the environment
+├── windows/                        # PowerShell scripts for Windows
+│   ├── config.ps1                  # Edit this to change models / ports
+│   ├── setup.ps1                   # Run once after cloning
+│   └── start.ps1                   # Run every time to boot the environment
+├── linux/                          # Bash scripts for Linux / macOS
+│   ├── config.sh                   # Edit this to change models / ports
+│   ├── setup.sh                    # Run once after cloning
+│   └── start.sh                    # Run every time to boot the environment
+├── toolkit/
+│   └── continue/                   # Continue VS Code extension setup
+│       ├── config.yaml             # Drop into ~/.continue/config.yaml
+│       ├── windows/install.ps1     # One-command install (Windows)
+│       ├── linux/install.sh        # One-command install (Linux/macOS)
+│       └── prompts/                # Custom slash commands
+│           ├── commit-msg.yaml     # /commit-msg
+│           ├── explain.yaml        # /explain
+│           ├── refactor.yaml       # /refactor
+│           └── tests.yaml          # /tests
 └── README.md
 ```
 
@@ -127,6 +137,8 @@ After pulling, add the model name to `EXTRA_MODELS` in your config file so it is
 | **Chat** | Ask questions about your code, get explanations, brainstorm approaches |
 | **Edit** | Inline code modification without leaving the file |
 | **Autocomplete** | Real-time tab-completion as you type |
+
+> The `toolkit/continue/` folder contains a ready-to-use `config.yaml` and install scripts. See [`toolkit/continue/README.md`](toolkit/continue/README.md) for details.
 
 ### Installation
 

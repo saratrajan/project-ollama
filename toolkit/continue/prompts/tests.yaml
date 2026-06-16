@@ -1,0 +1,18 @@
+name: tests
+description: Generate unit tests for the selected code
+prompt: |
+  Write unit tests for the following code.
+
+  Guidelines:
+  - Use the same language and test framework already in the project (infer from context)
+  - Cover: happy path, edge cases, and failure modes
+  - Each test should have a single clear assertion
+  - Use descriptive test names that read like sentences ("returns empty list when input is empty")
+  - Mock external dependencies (I/O, network, database) — do not test them here
+  - Do not test implementation details; test observable behaviour
+
+  Return only the test code, no explanation needed.
+
+  ```
+  {{{ input }}}
+  ```

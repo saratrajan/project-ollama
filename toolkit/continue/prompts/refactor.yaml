@@ -1,0 +1,21 @@
+name: refactor
+description: Refactor the selected code for clarity and simplicity
+prompt: |
+  Refactor the following code. Improve it without changing its behaviour.
+
+  Priorities (in order):
+  1. Clarity — a reader should understand it faster after the change
+  2. Simplicity — remove unnecessary abstractions, duplication, or complexity
+  3. Naming — rename anything that is vague or misleading
+  4. Safety — flag any subtle bugs or edge cases you notice (but don't fix silently)
+
+  Do NOT:
+  - Add new features or handle new edge cases
+  - Add comments that just describe what the code does
+  - Introduce new dependencies
+
+  Return only the refactored code, followed by a short bullet list of what you changed and why.
+
+  ```
+  {{{ input }}}
+  ```

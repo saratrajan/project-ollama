@@ -1,0 +1,16 @@
+name: explain
+description: Explain the selected code clearly and concisely
+prompt: |
+  Explain the following code to a developer who is familiar with the language
+  but hasn't seen this codebase before.
+
+  Cover:
+  1. What it does (one sentence)
+  2. How it works (key steps, non-obvious logic, important data flow)
+  3. Any gotchas, side effects, or assumptions worth knowing
+
+  Keep it concise — bullet points over paragraphs where possible.
+
+  ```
+  {{{ input }}}
+  ```

@@ -1,0 +1,70 @@
+# =============================================================================
+# Continue config.yaml — Local Ollama setup
+# Copy this file to: ~/.continue/config.yaml
+# =============================================================================
+#
+# Requires: Ollama running at http://localhost:11434
+# Run project-ollama start script first, then reload VS Code.
+# =============================================================================
+
+models:
+  # ---------------------------------------------------------------------------
+  # Chat + Agent model
+  # Used in the Continue chat panel (Ctrl+L) and agent tasks
+  # ---------------------------------------------------------------------------
+  - name: Qwen Coder 3B (chat)
+    provider: ollama
+    model: qwen2.5-coder:3b
+    apiBase: http://localhost:11434
+    roles:
+      - chat
+      - agent
+    defaultCompletionOptions:
+      temperature: 0.3
+      maxTokens: 4096
+
+  # ---------------------------------------------------------------------------
+  # Autocomplete model
+  # Inline tab-completion as you type — keep this model small for low latency
+  # ---------------------------------------------------------------------------
+  - name: Qwen Coder 3B (autocomplete)
+    provider: ollama
+    model: qwen2.5-coder:3b
+    apiBase: http://localhost:11434
+    roles:
+      - autocomplete
+    autocompleteOptions:
+      debounceDelay: 350          # ms to wait after you stop typing
+      maxPromptTokens: 1024       # reduce to 512 if autocomplete feels slow
+      onlyMyCode: true            # ignore node_modules / site-packages
+      useCache: true
+      useImports: true
+      useRecentlyEdited: true
+    defaultCompletionOptions:
+      temperature: 0.2            # low temp = more deterministic completions
+
+  # ---------------------------------------------------------------------------
+  # Embeddings model
+  # Powers @codebase semantic search — pull with: ollama pull nomic-embed-text
+  # ---------------------------------------------------------------------------
+  - name: Nomic Embed
+    provider: ollama
+    model: nomic-embed-text
+    apiBase: http://localhost:11434
+    roles:
+      - embed
+    embedOptions:
+      maxChunkSize: 512
+      maxBatchSize: 8
+
+# ---------------------------------------------------------------------------
+# Swap in a heavier chat model when you need stronger reasoning.
+# Uncomment and adjust — the autocomplete model stays lightweight.
+# ---------------------------------------------------------------------------
+# - name: Qwen 7B (chat)
+#   provider: ollama
+#   model: qwen2.5:7b
+#   apiBase: http://localhost:11434
+#   roles:
+#     - chat
+#     - agent
