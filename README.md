@@ -11,7 +11,7 @@ Bootstrap for a fully local, private AI environment — runs [Ollama](https://ol
 | [Ollama](https://ollama.com) | Local LLM inference engine |
 | `qwen2.5-coder:3b` | Default model — fast, code-focused, low VRAM |
 | [Open WebUI](https://github.com/open-webui/open-webui) | Chat UI at `http://localhost:3000` |
-| [Continue](https://continue.dev) (VS Code) | AI coding assistant, connects to Ollama API |
+| [Continue](https://marketplace.visualstudio.com/items?itemName=Continue.continue) (VS Code) | AI coding assistant — chat, edit, autocomplete, agent |
 
 ---
 
@@ -119,12 +119,92 @@ After pulling, add the model name to `EXTRA_MODELS` in your config file so it is
 
 ## VS Code — Continue Extension
 
-1. Install the [Continue](https://marketplace.visualstudio.com/items?itemName=Continue.continue) extension.
-2. Open Continue settings and set:
-   - **Provider**: Ollama
-   - **API Base**: `http://localhost:11434`
-   - **Model**: `qwen2.5-coder:3b` (or whatever you have pulled)
-3. Continue auto-detects Ollama when the server is running — no API key needed.
+[Continue](https://marketplace.visualstudio.com/items?itemName=Continue.continue) is the primary AI coding interface for this setup. It wires directly into Ollama and provides four modes inside VS Code:
+
+| Mode | What it does |
+|---|---|
+| **Agent** | Collaborative AI assistance — plans and executes multi-step dev tasks |
+| **Chat** | Ask questions about your code, get explanations, brainstorm approaches |
+| **Edit** | Inline code modification without leaving the file |
+| **Autocomplete** | Real-time tab-completion as you type |
+
+### Installation
+
+1. Open VS Code and press `Ctrl+P`, then paste:
+   ```
+   ext install Continue.continue
+   ```
+2. Alternatively, search **"Continue"** in the Extensions panel and install the one by *Continue Dev, Inc.* (3M+ installs).
+
+### Connecting to Ollama
+
+Continue is configured via `~/.continue/config.yaml`. The snippet below sets up **chat**, **autocomplete**, and **embeddings** — all backed by local Ollama models, no API key needed.
+
+```yaml
+# ~/.continue/config.yaml
+
+models:
+  # Chat / Agent model
+  - name: Qwen Coder (chat)
+    provider: ollama
+    model: qwen2.5-coder:3b
+    apiBase: http://localhost:11434
+    roles:
+      - chat
+      - agent
+
+  # Autocomplete model (lightweight for low latency)
+  - name: Qwen Coder (autocomplete)
+    provider: ollama
+    model: qwen2.5-coder:3b
+    apiBase: http://localhost:11434
+    roles:
+      - autocomplete
+    autocompleteOptions:
+      debounceDelay: 350
+      maxPromptTokens: 1024
+      onlyMyCode: true
+    defaultCompletionOptions:
+      temperature: 0.2
+
+  # Embeddings model (for codebase indexing / @codebase context)
+  - name: Nomic Embed
+    provider: ollama
+    model: nomic-embed-text
+    apiBase: http://localhost:11434
+    roles:
+      - embed
+```
+
+> **Note:** The embeddings model (`nomic-embed-text`) must be pulled separately:
+> ```bash
+> ollama pull nomic-embed-text
+> ```
+> Skip this block if you don't need `@codebase` context search.
+
+### Using Continue
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl+L` | Open Chat panel |
+| `Ctrl+I` | Inline Edit — highlight code, then apply an AI change |
+| `Tab` | Accept autocomplete suggestion |
+| `Esc` | Dismiss autocomplete suggestion |
+
+**Context references you can use in chat:**
+
+| Reference | What it includes |
+|---|---|
+| `@file` | A specific file |
+| `@codebase` | Semantic search across your indexed repo |
+| `@terminal` | Last terminal output |
+| `@docs` | A documentation site you've added |
+
+### Tips
+
+- Start `./windows/start.ps1` (or `./linux/start.sh`) **before** opening VS Code — Continue connects to Ollama on startup.
+- If autocomplete feels slow, reduce `maxPromptTokens` to `512` or switch to a smaller model like `qwen2.5-coder:1.5b`.
+- For a stronger chat model without changing autocomplete, add a second entry under `models:` with a different model and restrict its role to `chat`.
 
 ---
 
