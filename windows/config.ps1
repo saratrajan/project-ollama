@@ -11,8 +11,9 @@ $EXTRA_MODELS      = @(
 )
 
 # Open WebUI settings
-$WEBUI_PORT        = 3000          # Browser port (http://localhost:3000)
-$WEBUI_CONTAINER   = "open-webui" # Docker container name
+$WEBUI_PORT        = 3000                                          # Browser port (http://localhost:3000)
+$WEBUI_CONTAINER   = "open-webui"                                 # Docker container name
+$WEBUI_DATA_DIR    = "$env:USERPROFILE\.webui-data"               # Host directory for persistent chat/data storage
 
 # Ollama API
 $OLLAMA_HOST       = "http://localhost:11434"

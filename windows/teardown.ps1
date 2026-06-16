@@ -1,7 +1,10 @@
 # =============================================================================
 # teardown.ps1 - Full cleanup (destructive)
-# Stops and REMOVES the container and Docker volume. Models are kept.
+# Stops and REMOVES the container. Chat data in WEBUI_DATA_DIR is preserved.
 # Run setup.ps1 to rebuild from scratch.
+#
+# Usage:
+#   .\teardown.ps1 [-Yes]
 # =============================================================================
 
 [CmdletBinding()]
@@ -17,7 +20,8 @@ function Write-Skip($msg) { Write-Host "    [--] $msg" -ForegroundColor DarkGray
 function Write-Warn($msg) { Write-Host "    [!!] $msg" -ForegroundColor Yellow }
 
 if (-not $Yes) {
-    Write-Host "`n  [!!] This will remove the Open WebUI container and its data volume." -ForegroundColor Yellow
+    Write-Host "`n  [!!] This will remove the Open WebUI container." -ForegroundColor Yellow
+    Write-Host "       Your chat data is SAFE at: $WEBUI_DATA_DIR" -ForegroundColor Yellow
     Write-Host "       Ollama models are NOT deleted." -ForegroundColor Yellow
     $confirm = Read-Host "`n  Continue? [y/N]"
     if ($confirm -notmatch "^[Yy]") {
@@ -36,17 +40,7 @@ if ($exists) {
     Write-Skip "Container '$WEBUI_CONTAINER' not found"
 }
 
-# --- 2. Remove Docker volume ---
-Write-Step "Removing Docker volume (open-webui)..."
-$volume = docker volume ls --format "{{.Name}}" | Where-Object { $_ -eq "open-webui" }
-if ($volume) {
-    docker volume rm open-webui | Out-Null
-    Write-OK "Volume 'open-webui' removed"
-} else {
-    Write-Skip "Volume 'open-webui' not found"
-}
-
-# --- 3. Stop Ollama ---
+# --- 2. Stop Ollama ---
 Write-Step "Stopping Ollama..."
 $proc = Get-Process -Name "ollama" -ErrorAction SilentlyContinue
 if ($proc) {
@@ -56,4 +50,6 @@ if ($proc) {
     Write-Skip "Ollama is not running"
 }
 
-Write-Host "`n  Teardown complete. Run .\setup.ps1 to rebuild." -ForegroundColor Green
+Write-Host "`n  Teardown complete." -ForegroundColor Green
+Write-Host "  Chat data preserved at: $WEBUI_DATA_DIR" -ForegroundColor White
+Write-Host "  Run .\setup.ps1 to rebuild." -ForegroundColor White

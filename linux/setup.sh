@@ -107,6 +107,12 @@ else
     ok "Docker is running"
 
     step "Setting up Open WebUI container..."
+
+    # Ensure data directory exists with correct permissions
+    mkdir -p "$WEBUI_DATA_DIR"
+    chmod 755 "$WEBUI_DATA_DIR"
+    ok "Data directory: $WEBUI_DATA_DIR"
+
     if docker ps --format "{{.Names}}" | grep -q "^${WEBUI_CONTAINER}$"; then
         skip "Container '$WEBUI_CONTAINER' already running"
     elif docker ps -a --format "{{.Names}}" | grep -q "^${WEBUI_CONTAINER}$"; then
@@ -117,14 +123,14 @@ else
         docker run -d \
             -p "${WEBUI_PORT}:8080" \
             --add-host=host.docker.internal:host-gateway \
-            -v open-webui:/app/backend/data \
+            -v "${WEBUI_DATA_DIR}:/app/backend/data" \
             --name "$WEBUI_CONTAINER" \
             --restart always \
             --env SCARF_NO_ANALYTICS=true \
             --env DO_NOT_TRACK=1 \
             --env ANONYMIZED_TELEMETRY=false \
             ghcr.io/open-webui/open-webui:main
-        ok "Open WebUI container created (telemetry disabled)"
+        ok "Open WebUI container created (data -> $WEBUI_DATA_DIR, telemetry disabled)"
     fi
 fi
 

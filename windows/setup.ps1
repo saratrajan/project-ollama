@@ -80,6 +80,15 @@ if ($SkipWebUI) {
     Write-OK "Docker is running"
 
     Write-Step "Setting up Open WebUI container..."
+
+    # Ensure data directory exists
+    if (-not (Test-Path $WEBUI_DATA_DIR)) {
+        New-Item -ItemType Directory -Path $WEBUI_DATA_DIR | Out-Null
+        Write-OK "Created data directory: $WEBUI_DATA_DIR"
+    } else {
+        Write-Skip "Data directory exists: $WEBUI_DATA_DIR"
+    }
+
     $running = docker ps --format "{{.Names}}" | Where-Object { $_ -eq $WEBUI_CONTAINER }
     $stopped = docker ps -a --format "{{.Names}}" | Where-Object { $_ -eq $WEBUI_CONTAINER }
 
@@ -94,7 +103,7 @@ if ($SkipWebUI) {
             "run", "-d",
             "-p", "${WEBUI_PORT}:8080",
             "--add-host=host.docker.internal:host-gateway",
-            "-v", "open-webui:/app/backend/data",
+            "-v", "${WEBUI_DATA_DIR}:/app/backend/data",
             "--name", $WEBUI_CONTAINER,
             "--restart", "always",
             "--env", "SCARF_NO_ANALYTICS=true",
@@ -103,7 +112,7 @@ if ($SkipWebUI) {
             "ghcr.io/open-webui/open-webui:main"
         )
         & docker @dockerArgs
-        if ($LASTEXITCODE -eq 0) { Write-OK "Open WebUI container created (telemetry disabled)" }
+        if ($LASTEXITCODE -eq 0) { Write-OK "Open WebUI container created (data -> $WEBUI_DATA_DIR, telemetry disabled)" }
         else { Write-Fail "Failed to create container - check Docker output above"; exit 1 }
     }
 }

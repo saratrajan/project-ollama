@@ -50,6 +50,7 @@ Edit `windows/config.ps1` or `linux/config.sh` before running setup:
 | `DEFAULT_MODEL` | `qwen2.5-coder:3b` |
 | `EXTRA_MODELS` | `qwen2.5:7b` |
 | `WEBUI_PORT` | `3000` |
+| `WEBUI_DATA_DIR` | `~/.webui-data` / `%USERPROFILE%\.webui-data` |
 | `OLLAMA_HOST` | `http://localhost:11434` |
 | `AUTO_OPEN_BROWSER` | `true` |
 
@@ -77,7 +78,8 @@ Stops Open WebUI container and Ollama. Models and data are preserved. Run `start
 ```
 
 ### Teardown (destructive)
-Stops and **removes** the container and WebUI data volume. Ollama and pulled models are untouched. Run `setup` to rebuild.
+Stops and **removes** the container. Ollama and pulled models are untouched.
+**Chat history and settings are preserved** in `WEBUI_DATA_DIR` — run `setup` to rebuild and pick up exactly where you left off.
 
 **Windows**
 ```powershell
