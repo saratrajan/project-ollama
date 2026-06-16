@@ -63,19 +63,33 @@ Edit `windows/config.ps1` or `linux/config.sh` before running setup:
 
 ## Stopping & Teardown
 
-**Stop** (reversible — container and models kept):
+### Stop (reversible)
+Stops Open WebUI container and Ollama. Models and data are preserved. Run `start` to resume.
+
+**Windows**
 ```powershell
-.\windows\stop.ps1       # Windows
-./linux/stop.sh          # Linux / macOS
+.\windows\stop.ps1
 ```
 
-**Teardown** (destructive — removes container and WebUI data volume, models kept):
-```powershell
-.\windows\teardown.ps1   # Windows
-./linux/teardown.sh      # Linux / macOS
+**Linux / macOS**
+```bash
+./linux/stop.sh
 ```
 
-Run `setup` again after a teardown to rebuild.
+### Teardown (destructive)
+Stops and **removes** the container and WebUI data volume. Ollama and pulled models are untouched. Run `setup` to rebuild.
+
+**Windows**
+```powershell
+.\windows\teardown.ps1          # prompts for confirmation
+.\windows\teardown.ps1 -Yes     # skip prompt
+```
+
+**Linux / macOS**
+```bash
+./linux/teardown.sh             # prompts for confirmation
+./linux/teardown.sh --yes       # skip prompt
+```
 
 ## Adding Models
 
