@@ -51,7 +51,24 @@ pull_if_missing() {
 # --- 1. Ollama check / install ---
 step "Checking Ollama..."
 if ! command -v ollama &>/dev/null; then
-    warn "Ollama not found — installing via official script..."
+    warn "Ollama not found — checking dependencies..."
+
+    if ! command -v zstd &>/dev/null; then
+        warn "zstd not found — installing..."
+        if command -v apt-get &>/dev/null; then
+            sudo apt-get install -y zstd
+        elif command -v dnf &>/dev/null; then
+            sudo dnf install -y zstd
+        elif command -v pacman &>/dev/null; then
+            sudo pacman -S --noconfirm zstd
+        else
+            fail "Could not install zstd — unknown package manager. Install it manually and re-run."
+            exit 1
+        fi
+        ok "zstd installed"
+    fi
+
+    warn "Installing Ollama via official script..."
     curl -fsSL https://ollama.com/install.sh | sh
     if ! command -v ollama &>/dev/null; then
         fail "Ollama install failed. Install manually from https://ollama.com"
