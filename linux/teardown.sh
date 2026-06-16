@@ -59,7 +59,7 @@ fi
 # --- 3. Stop Ollama ---
 step "Stopping Ollama..."
 if pgrep -x ollama >/dev/null 2>&1; then
-    pkill -x ollama
+    sudo pkill -x ollama
     ok "Ollama stopped"
 else
     skip "Ollama is not running"
