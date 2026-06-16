@@ -23,6 +23,9 @@ Local, private AI environment — [Ollama](https://ollama.com) + [Open WebUI](ht
 
 **Windows**
 ```powershell
+# One-time: allow local scripts to run
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
 git clone https://github.com/saratrajan/project-ollama.git
 cd project-ollama
 .\windows\setup.ps1       # first time only
