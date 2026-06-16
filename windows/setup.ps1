@@ -1,13 +1,39 @@
 # =============================================================================
-# setup.ps1 — Run ONCE after cloning to pull models and start WebUI
+# setup.ps1 — Pull models and launch Open WebUI
+# Safe to run multiple times — skips steps that are already complete.
+#
+# Usage:
+#   .\setup.ps1 [-SkipWebUI] [-Yes]
+#
+#   -SkipWebUI   Skip Docker / Open WebUI setup (Ollama + models only)
+#   -Yes         Non-interactive: auto-confirm any prompts
 # =============================================================================
+
+[CmdletBinding()]
+param(
+    [switch]$SkipWebUI,
+    [switch]$Yes
+)
 
 . "$PSScriptRoot\config.ps1"
 
 function Write-Step($msg) { Write-Host "`n>>> $msg" -ForegroundColor Cyan }
 function Write-OK($msg)   { Write-Host "    [OK] $msg" -ForegroundColor Green }
+function Write-Skip($msg) { Write-Host "    [--] $msg" -ForegroundColor DarkGray }
 function Write-Warn($msg) { Write-Host "    [!!] $msg" -ForegroundColor Yellow }
 function Write-Fail($msg) { Write-Host "    [XX] $msg" -ForegroundColor Red }
+
+function Pull-IfMissing($model) {
+    $base = $model.Split(":")[0]
+    $already = ollama list 2>&1 | Select-String "^$base"
+    if ($already) {
+        Write-Skip "$model already pulled"
+    } else {
+        ollama pull $model
+        if ($LASTEXITCODE -eq 0) { Write-OK "$model ready" }
+        else { Write-Warn "Could not pull $model — skipping (run manually: ollama pull $model)" }
+    }
+}
 
 # --- 1. Ollama check ---
 Write-Step "Checking Ollama..."
@@ -15,48 +41,56 @@ if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
     Write-Fail "Ollama not found. Download from https://ollama.com and re-run setup."
     exit 1
 }
-Write-OK "Ollama found"
+$ollamaVer = ollama --version 2>&1
+Write-OK "Ollama found ($ollamaVer)"
 
 # --- 2. Pull default model ---
-Write-Step "Pulling default model: $DEFAULT_MODEL"
-ollama pull $DEFAULT_MODEL
-if ($LASTEXITCODE -eq 0) { Write-OK "$DEFAULT_MODEL ready" }
-else { Write-Warn "Pull may have failed — check output above" }
+Write-Step "Checking default model: $DEFAULT_MODEL"
+Pull-IfMissing $DEFAULT_MODEL
 
 # --- 3. Pull extra models ---
-foreach ($model in $EXTRA_MODELS) {
-    Write-Step "Pulling extra model: $model"
-    ollama pull $model
-    if ($LASTEXITCODE -eq 0) { Write-OK "$model ready" }
-    else { Write-Warn "Could not pull $model — skipping" }
-}
-
-# --- 4. Docker check ---
-Write-Step "Checking Docker..."
-$dockerRunning = docker info 2>&1 | Select-String "Server Version"
-if (-not $dockerRunning) {
-    Write-Fail "Docker is not running. Start Docker Desktop and re-run setup."
-    exit 1
-}
-Write-OK "Docker is running"
-
-# --- 5. Launch Open WebUI ---
-Write-Step "Setting up Open WebUI container..."
-$existing = docker ps -a --format "{{.Names}}" | Where-Object { $_ -eq $WEBUI_CONTAINER }
-
-if ($existing) {
-    Write-OK "Container '$WEBUI_CONTAINER' already exists — skipping creation"
+if ($EXTRA_MODELS.Count -gt 0) {
+    foreach ($model in $EXTRA_MODELS) {
+        Write-Step "Checking extra model: $model"
+        Pull-IfMissing $model
+    }
 } else {
-    docker run -d `
-        -p "${WEBUI_PORT}:8080" `
-        --add-host=host.docker.internal:host-gateway `
-        -v open-webui:/app/backend/data `
-        --name $WEBUI_CONTAINER `
-        --restart always `
-        ghcr.io/open-webui/open-webui:main
+    Write-Skip "No extra models configured"
+}
 
-    if ($LASTEXITCODE -eq 0) { Write-OK "Open WebUI container created" }
-    else { Write-Fail "Failed to create container — check Docker output above"; exit 1 }
+# --- 4. Docker + WebUI (skippable) ---
+if ($SkipWebUI) {
+    Write-Skip "Skipping Docker / WebUI setup (-SkipWebUI)"
+} else {
+    Write-Step "Checking Docker..."
+    $dockerRunning = docker info 2>&1 | Select-String "Server Version"
+    if (-not $dockerRunning) {
+        Write-Fail "Docker is not running. Start Docker Desktop and re-run setup."
+        exit 1
+    }
+    Write-OK "Docker is running"
+
+    Write-Step "Setting up Open WebUI container..."
+    $running = docker ps --format "{{.Names}}" | Where-Object { $_ -eq $WEBUI_CONTAINER }
+    $stopped = docker ps -a --format "{{.Names}}" | Where-Object { $_ -eq $WEBUI_CONTAINER }
+
+    if ($running) {
+        Write-Skip "Container '$WEBUI_CONTAINER' already running"
+    } elseif ($stopped) {
+        docker start $WEBUI_CONTAINER | Out-Null
+        Write-OK "Container '$WEBUI_CONTAINER' was stopped — started it"
+    } else {
+        docker run -d `
+            -p "${WEBUI_PORT}:8080" `
+            --add-host=host.docker.internal:host-gateway `
+            -v open-webui:/app/backend/data `
+            --name $WEBUI_CONTAINER `
+            --restart always `
+            ghcr.io/open-webui/open-webui:main
+
+        if ($LASTEXITCODE -eq 0) { Write-OK "Open WebUI container created" }
+        else { Write-Fail "Failed to create container — check Docker output above"; exit 1 }
+    }
 }
 
 Write-Host "`n=== Setup complete! ===" -ForegroundColor Green

@@ -1,11 +1,23 @@
 # =============================================================================
-# start.ps1 — Run this every time to boot your local AI environment
+# start.ps1 — Boot your local AI environment
+# Safe to run multiple times — skips anything already running.
+#
+# Usage:
+#   .\start.ps1 [-NoBrowser]
+#
+#   -NoBrowser   Don't open the browser automatically
 # =============================================================================
+
+[CmdletBinding()]
+param(
+    [switch]$NoBrowser
+)
 
 . "$PSScriptRoot\config.ps1"
 
 function Write-Step($msg) { Write-Host "`n>>> $msg" -ForegroundColor Cyan }
 function Write-OK($msg)   { Write-Host "    [OK] $msg" -ForegroundColor Green }
+function Write-Skip($msg) { Write-Host "    [--] $msg" -ForegroundColor DarkGray }
 function Write-Warn($msg) { Write-Host "    [!!] $msg" -ForegroundColor Yellow }
 function Write-Fail($msg) { Write-Host "    [XX] $msg" -ForegroundColor Red }
 
@@ -17,17 +29,35 @@ Write-Host "  ╚═════════════════════
 
 # --- 1. Ollama service ---
 Write-Step "Checking Ollama service..."
+if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
+    Write-Fail "Ollama is not installed. Run setup.ps1 first."
+    exit 1
+}
+
+$ollamaUp = $false
 try {
-    $response = Invoke-RestMethod -Uri "$OLLAMA_HOST" -TimeoutSec 3 -ErrorAction Stop
+    $null = Invoke-RestMethod -Uri "$OLLAMA_HOST" -TimeoutSec 3 -ErrorAction Stop
+    $ollamaUp = $true
+} catch {}
+
+if ($ollamaUp) {
     Write-OK "Ollama is running at $OLLAMA_HOST"
-} catch {
+} else {
     Write-Warn "Ollama not responding — attempting to start..."
     Start-Process "ollama" -ArgumentList "serve" -WindowStyle Hidden
-    Start-Sleep -Seconds 3
-    try {
-        $response = Invoke-RestMethod -Uri "$OLLAMA_HOST" -TimeoutSec 5 -ErrorAction Stop
-        Write-OK "Ollama started successfully"
-    } catch {
+
+    # Wait up to 10s
+    for ($i = 1; $i -le 5; $i++) {
+        Start-Sleep -Seconds 2
+        try {
+            $null = Invoke-RestMethod -Uri "$OLLAMA_HOST" -TimeoutSec 3 -ErrorAction Stop
+            Write-OK "Ollama started successfully"
+            $ollamaUp = $true
+            break
+        } catch {}
+    }
+
+    if (-not $ollamaUp) {
         Write-Fail "Could not start Ollama. Open a terminal and run: ollama serve"
         exit 1
     }
@@ -35,12 +65,16 @@ try {
 
 # --- 2. Verify model is available ---
 Write-Step "Verifying model: $DEFAULT_MODEL..."
+$base = $DEFAULT_MODEL.Split(":")[0]
 $models = ollama list 2>&1
-if ($models -match [regex]::Escape($DEFAULT_MODEL.Split(":")[0])) {
+if ($models -match [regex]::Escape($base)) {
     Write-OK "$DEFAULT_MODEL is available"
 } else {
     Write-Warn "$DEFAULT_MODEL not found locally — pulling now..."
     ollama pull $DEFAULT_MODEL
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warn "Pull may have failed — continuing (model may still work if partially cached)"
+    }
 }
 
 # --- 3. Docker check ---
@@ -58,7 +92,7 @@ $running = docker ps --format "{{.Names}}" | Where-Object { $_ -eq $WEBUI_CONTAI
 $stopped = docker ps -a --format "{{.Names}}" | Where-Object { $_ -eq $WEBUI_CONTAINER }
 
 if ($running) {
-    Write-OK "Open WebUI already running"
+    Write-Skip "Open WebUI already running"
 } elseif ($stopped) {
     docker start $WEBUI_CONTAINER | Out-Null
     Write-OK "Open WebUI container restarted"
@@ -90,7 +124,9 @@ if ($ready) {
 }
 
 # --- 6. Open browser ---
-if ($AUTO_OPEN_BROWSER) {
+if ($NoBrowser -or -not $AUTO_OPEN_BROWSER) {
+    Write-Skip "Browser launch skipped"
+} else {
     Write-Step "Opening browser..."
     Start-Process "http://localhost:$WEBUI_PORT"
     Write-OK "Browser launched"
