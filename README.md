@@ -108,30 +108,39 @@ Install: `Ctrl+P` → `ext install Continue.continue`
 Configure `~/.continue/config.yaml`:
 
 ```yaml
+name: Local Config
+version: 1.0.0
+schema: v1
 models:
-  - name: Qwen Coder (chat)
+  - name: Qwen2.5-Coder 3B
     provider: ollama
     model: qwen2.5-coder:3b
-    apiBase: http://localhost:11434
-    roles: [chat, agent]
-
-  - name: Qwen Coder (autocomplete)
+    roles:
+      - chat
+      - edit
+      - apply
+      - agent
+  - name: Qwen2.5-Coder 1.5B
     provider: ollama
-    model: qwen2.5-coder:3b
+    model: qwen2.5-coder:1.5b-base
     apiBase: http://localhost:11434
-    roles: [autocomplete]
+    roles:
+      - autocomplete
     autocompleteOptions:
       debounceDelay: 350
       maxPromptTokens: 1024
       onlyMyCode: true
+      useCache: true
+      useImports: true
+      useRecentlyEdited: true
     defaultCompletionOptions:
       temperature: 0.2
-
   - name: Nomic Embed
     provider: ollama
-    model: nomic-embed-text      # ollama pull nomic-embed-text
+    model: nomic-embed-text:latest
     apiBase: http://localhost:11434
-    roles: [embed]
+    roles:
+      - embed
 ```
 
 | Shortcut | Action |
