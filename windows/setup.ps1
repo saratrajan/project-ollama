@@ -15,6 +15,8 @@ param(
     [switch]$Yes
 )
 
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+
 . "$PSScriptRoot\config.ps1"
 
 function Write-Step($msg) { Write-Host "`n>>> $msg" -ForegroundColor Cyan }
