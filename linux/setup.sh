@@ -48,13 +48,19 @@ pull_if_missing() {
 
 # =============================================================================
 
-# --- 1. Ollama check ---
+# --- 1. Ollama check / install ---
 step "Checking Ollama..."
 if ! command -v ollama &>/dev/null; then
-    fail "Ollama not found. Install from https://ollama.com and re-run setup."
-    exit 1
+    warn "Ollama not found — installing via official script..."
+    curl -fsSL https://ollama.com/install.sh | sh
+    if ! command -v ollama &>/dev/null; then
+        fail "Ollama install failed. Install manually from https://ollama.com"
+        exit 1
+    fi
+    ok "Ollama installed"
+else
+    ok "Ollama found ($(ollama --version 2>/dev/null || echo 'version unknown'))"
 fi
-ok "Ollama found ($(ollama --version 2>/dev/null || echo 'version unknown'))"
 
 # --- 2. Pull default model ---
 step "Checking default model: $DEFAULT_MODEL"

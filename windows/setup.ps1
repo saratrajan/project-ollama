@@ -35,14 +35,24 @@ function Pull-IfMissing($model) {
     }
 }
 
-# --- 1. Ollama check ---
+# --- 1. Ollama check / install ---
 Write-Step "Checking Ollama..."
 if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
-    Write-Fail "Ollama not found. Download from https://ollama.com and re-run setup."
-    exit 1
+    Write-Warn "Ollama not found — installing via winget..."
+    winget install Ollama.Ollama --silent --accept-source-agreements --accept-package-agreements
+    # Refresh PATH for current session
+    $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "Machine") + ";" +
+                [System.Environment]::GetEnvironmentVariable("PATH", "User")
+    if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
+        Write-Fail "Ollama install failed. Install manually from https://ollama.com"
+        Write-Fail "Then restart your terminal and re-run setup."
+        exit 1
+    }
+    Write-OK "Ollama installed"
+} else {
+    $ollamaVer = ollama --version 2>&1
+    Write-OK "Ollama found ($ollamaVer)"
 }
-$ollamaVer = ollama --version 2>&1
-Write-OK "Ollama found ($ollamaVer)"
 
 # --- 2. Pull default model ---
 Write-Step "Checking default model: $DEFAULT_MODEL"
