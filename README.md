@@ -21,7 +21,9 @@ Local, private AI environment — [Ollama](https://ollama.com) + [Open WebUI](ht
 
 ## Quick Start
 
-**Windows**
+**Windows (including WSL on Windows)**
+> If you use WSL, still run the Windows scripts from a PowerShell terminal. VS Code and Continue.dev are Windows processes — Ollama must run on Windows localhost for them to connect.
+
 ```powershell
 # One-time: allow local scripts to run
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
@@ -32,7 +34,7 @@ cd project-ollama
 .\windows\start.ps1       # every session
 ```
 
-**Linux / macOS**
+**Linux / macOS (native — not WSL)**
 ```bash
 git clone https://github.com/saratrajan/project-ollama.git
 cd project-ollama
